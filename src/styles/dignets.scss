@@ -1,0 +1,141 @@
+// DigNets brand layer: fonts, gradients, glass surfaces and story rings on top of the base client.
+/* stylelint-disable */
+
+$dn-gradient: linear-gradient(135deg, #FF4560 0%, #E0192C 48%, #A30E21 100%);
+$dn-ring: conic-gradient(from 210deg, #FF4560, #FF9A3C, #B14DFF, #FF4560);
+
+:root,
+html.theme-dark,
+html.theme-light {
+  --dn-font-display: "Sora", "Manrope", "Roboto", sans-serif;
+  --dn-gradient: #{$dn-gradient};
+  --color-avatar-story-unread-from: #FF9A3C;
+  --color-avatar-story-unread-to: #B14DFF;
+  --border-radius-list-item: 0.875rem;
+}
+
+html.theme-dark {
+  --theme-background-color: #0D0D12;
+}
+
+html body {
+  --font-family: "Manrope", "Roboto", -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI", sans-serif !important;
+  --font-weight-semibold: 600;
+}
+
+// Headings and names in Sora
+.MiddleHeader .fullName,
+.ChatInfo .title h3,
+.LeftMainHeader .Menu + *,
+.RightHeader h3,
+.profile-info .title h3,
+.Modal .modal-title,
+.auth-form h1,
+#auth-qr-form h1,
+#auth-phone-number-form h1,
+#auth-code-form h1,
+#auth-password-form h1 {
+  font-family: var(--dn-font-display);
+  letter-spacing: -0.01em;
+}
+
+.Chat .ListItem-button .title h3 {
+  font-family: var(--dn-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+// Selected chat: brand gradient pill
+@media (min-width: 600px) {
+  .Chat.selected:not(.forum) .ListItem-button,
+  .Chat.selected:not(.forum):hover .ListItem-button {
+    background-image: $dn-gradient !important;
+    box-shadow: 0 0.5rem 1.5rem -0.75rem rgba(224, 25, 44, 0.65);
+  }
+}
+
+// Primary buttons and floating action button
+.Button.primary:not(.translucent):not(.faded):not(.disabled):not(.text) {
+  background-image: $dn-gradient;
+  box-shadow: 0 0.5rem 1.25rem -0.5rem rgba(224, 25, 44, 0.6);
+}
+
+.Button.round.primary:not(.translucent) {
+  background-image: $dn-gradient;
+}
+
+// Unread counters
+.ChatBadge-transition > div:not([class*="pinned"]):not([class*="muted"]) {
+  background-image: $dn-gradient;
+}
+
+// Story ring in the DigNets signature colors
+.Avatar.has-unread-story::before {
+  background-image: $dn-ring !important;
+}
+
+// Glass surfaces
+html.theme-dark {
+  .MiddleHeader {
+    background: rgba(20, 20, 27, 0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  #LeftColumn,
+  #RightColumn {
+    background-color: #111118;
+  }
+
+  .SearchInput {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+
+    &.has-focus {
+      border-color: rgba(255, 69, 96, 0.55);
+      background-color: rgba(255, 255, 255, 0.07);
+    }
+  }
+
+  .Composer .composer-wrapper,
+  .Composer .SymbolMenu-button,
+  .Composer .send,
+  .composer-wrapper {
+    --color-background: #17171F;
+  }
+
+  .Composer .composer-wrapper {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0.75rem 2rem -1rem rgba(0, 0, 0, 0.6);
+  }
+
+  // Own message bubbles: deep brand red
+  .Message.own .message-content.has-solid-background {
+    --color-background-own: #C2142A;
+  }
+}
+
+// Send button
+.Composer .Button.send,
+.Composer .Button.main-button.primary {
+  background-image: $dn-gradient;
+}
+
+// Auth screens
+#auth-qr-form,
+#auth-phone-number-form,
+#auth-code-form,
+#auth-password-form,
+#auth-registration-form {
+  h1 {
+    font-weight: 700;
+  }
+}
+
+#Auth,
+.Auth {
+  background-image:
+    radial-gradient(60% 50% at 80% 0%, rgba(224, 25, 44, 0.22) 0%, rgba(224, 25, 44, 0) 70%),
+    radial-gradient(50% 45% at 10% 100%, rgba(177, 77, 255, 0.16) 0%, rgba(177, 77, 255, 0) 70%);
+}

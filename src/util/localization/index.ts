@@ -482,7 +482,38 @@ function getIntlLocale(languageInfo = language) {
   return languageInfo?.pluralCode || FORMATTERS_FALLBACK_LANG;
 }
 
+// DigNets: branded Uzbek strings for the sign-in screens
+const DIGNETS_STRINGS: Partial<Record<string, string>> = {
+  AuthTitle: 'DigNets',
+  AuthKeepSignedIn: 'Tizimda qolish',
+  Code: 'Kod',
+  Next: 'Keyingi',
+  LoginNext: 'Keyingi',
+  WrongNumber: "Raqam noto'g'rimi?",
+  SentAppCode: "Kodni boshqa qurilmangizdagi **DigNets** (yoki Telegram) ilovasiga yubordik.",
+  LoginJustSentSms: 'SMS orqali kod yubordik. Uni yuqoriga kiriting.',
+  LoginHeaderPassword: 'Parolni kiriting',
+  LoginEnterPasswordDescription: "Hisobingizda ikki bosqichli tekshiruv yoqilgan, shuning uchun qo'shimcha parol kerak.",
+  StartText: 'Mamlakat kodini tasdiqlang\nva telefon raqamingizni kiriting.',
+  LoginPhonePlaceholder: 'Telefon raqamingiz',
+  LoginQRLogin: 'QR kod orqali kirish',
+  LoginQRTitle: "DigNets'ga QR kod orqali kiring",
+  LoginQRHelp1: 'Telefoningizda DigNets (yoki Telegram) ilovasini oching',
+  LoginQRHelp2: "**Sozlamalar** > **Qurilmalar** > **Qurilma ulash** bo'limiga kiring",
+  LoginQRHelp3: 'Kirishni tasdiqlash uchun telefonni shu ekranga qarating',
+  LoginQRCancel: 'Telefon raqam orqali kirish',
+  YourName: 'Ismingiz',
+  LoginRegisterDesc: "Ismingizni kiriting va profil rasmini qo'shing.",
+  LoginRegisterFirstNamePlaceholder: 'Ism',
+  LoginRegisterLastNamePlaceholder: 'Familiya',
+  LoginSelectCountryTitle: 'Mamlakat',
+  CountryNone: 'Mamlakat topilmadi',
+};
+
 function getString(langKey: LangKey, count: number) {
+  const dignetsString = DIGNETS_STRINGS[langKey];
+  if (dignetsString !== undefined) return dignetsString;
+
   const shouldForceFallback = FORCE_FALLBACK_LANG && language?.langCode === FALLBACK_LANG_CODE;
   let langPackStringValue = !shouldForceFallback ? langPack?.strings[langKey] : undefined;
   if (langPackStringValue && isDeletedLangString(langPackStringValue)) langPackStringValue = undefined;

@@ -38,7 +38,9 @@ import updateWebmanifest from './util/updateWebmanifest';
 import App from './components/App';
 
 import './assets/fonts/roboto.css';
+import './assets/fonts/dignets.css';
 import './styles/index.scss';
+import './styles/dignets.scss';
 
 if (STRICTERDOM_ENABLED) {
   enableStrict();
