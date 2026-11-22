@@ -32,6 +32,7 @@ import useLastCallback from '../../../hooks/useLastCallback';
 import Icon from '../../common/icons/Icon';
 import MainMenuDropdown from '../../common/MainMenuDropdown';
 import PeerChip from '../../common/PeerChip';
+import DigNetsBrandBar from '../../dignets/DigNetsBrandBar';
 import StoryToggler from '../../story/StoryToggler';
 import Button from '../../ui/Button';
 import SearchInput from '../../ui/SearchInput';
@@ -243,6 +244,7 @@ const LeftMainHeader = ({
 
   return (
     <div className="LeftMainHeader">
+      <DigNetsBrandBar isHidden={isSearchFocused || Boolean(globalSearchChatId) || areContactsVisible} />
       <div
         id="LeftMainHeader"
         className="left-header"

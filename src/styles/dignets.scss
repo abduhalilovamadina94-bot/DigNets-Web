@@ -149,3 +149,34 @@ html.theme-dark {
     background-image: $dn-gradient;
   }
 }
+
+// Chat list: rounded cards with breathing room
+@media (min-width: 600px) {
+  #LeftColumn .chat-list .Chat .ListItem-button {
+    border-radius: 1rem;
+  }
+}
+
+#LeftColumn .chat-list .Chat .ListItem-button {
+  padding-block: 0.5rem;
+}
+
+#LeftColumn .chat-list .Chat:not(.selected) .ListItem-button:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+html.theme-light #LeftColumn .chat-list .Chat:not(.selected) .ListItem-button:hover {
+  background-color: rgba(224, 25, 44, 0.05);
+}
+
+// Unread time in brand red, like the design
+#LeftColumn .Chat:not(.selected) .ListItem-button:has(.ChatBadge-transition .unread) .time,
+#LeftColumn .Chat:not(.selected) .ListItem-button:has([class*="unread"]) .LastMessageMeta .time {
+  color: #FF4560;
+  font-weight: 600;
+}
+
+// Search pill
+#LeftMainHeader .SearchInput {
+  border-radius: 1rem;
+}

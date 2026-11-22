@@ -16,7 +16,7 @@ import styles from './DigNetsAiModal.module.scss';
 
 type OwnProps = {
   isOpen: boolean;
-  chatId: string;
+  chatId?: string;
   threadId: ThreadId;
   onClose: NoneToVoidFunction;
 };
@@ -93,10 +93,10 @@ const DigNetsAiModal = ({
   const idRef = useRef(0);
 
   const global = getGlobal();
-  const chatUser = global.users.byId[chatId];
+  const chatUser = chatId ? global.users.byId[chatId] : undefined;
   const chatTitle = chatUser
     ? [chatUser.firstName, chatUser.lastName].filter(Boolean).join(' ')
-    : global.chats.byId[chatId]?.title || '';
+    : (chatId && global.chats.byId[chatId]?.title) || '';
 
   useEffect(() => {
     const list = listRef.current;
@@ -135,7 +135,7 @@ const DigNetsAiModal = ({
     setIsLoading(true);
 
     try {
-      const transcript = (task === 'improve' || task === 'translate')
+      const transcript = (!chatId || task === 'improve' || task === 'translate')
         ? ''
         : collectChatTranscript(getGlobal(), chatId, threadId);
       const prompt = buildPrompt(task, transcript, text, settings.language);
@@ -175,7 +175,11 @@ const DigNetsAiModal = ({
   });
 
   const handleInsert = useLastCallback((text: string) => {
-    openChatWithDraft({ chatId, threadId, text: { text } });
+    if (chatId) {
+      openChatWithDraft({ chatId, threadId, text: { text } });
+    } else {
+      openChatWithDraft({ text: { text } });
+    }
     onClose();
   });
 
@@ -191,6 +195,7 @@ const DigNetsAiModal = ({
   });
 
   const isEmpty = !entries.length && !isLoading;
+  const visibleCards = chatId ? CARDS : CARDS.filter((card) => !INSTANT_TASKS.includes(card.task));
   const needsKey = settings.provider !== 'free';
   const canStart = !needsKey || Boolean(settings.apiKey.trim());
   let subtitle = 'Shaxsiy yordamchi';
@@ -322,9 +327,11 @@ const DigNetsAiModal = ({
                 <div className={styles.hero}>
                   <div className={styles.orb} />
                   <div className={styles.heroTitle}>Salom! 👋</div>
-                  <div className={styles.heroText}>Bu chatda nima yordam beray?</div>
+                  <div className={styles.heroText}>
+                    {chatId ? 'Bu chatda nima yordam beray?' : 'Nima yordam beray?'}
+                  </div>
                   <div className={styles.cards}>
-                    {CARDS.map((card) => (
+                    {visibleCards.map((card) => (
                       <button
                         key={card.task}
                         type="button"
@@ -383,7 +390,7 @@ const DigNetsAiModal = ({
 
             {!isEmpty && (
               <div className={styles.quick}>
-                {CARDS.map((card) => (
+                {visibleCards.map((card) => (
                   <button
                     key={card.task}
                     type="button"
