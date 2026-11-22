@@ -215,3 +215,50 @@ html.theme-dark {
 .MiddleHeader .ChatInfo .Avatar {
   box-shadow: 0 0 0 2px var(--color-background), 0 0 0 3.5px #FF4560;
 }
+
+// ---------- Main menu (drawer) ----------
+.main-menu .bubble {
+  min-width: 18.5rem;
+  padding: 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1.5rem;
+}
+
+html.theme-dark .main-menu .bubble {
+  background: rgba(17, 17, 24, 0.96);
+  backdrop-filter: blur(20px);
+}
+
+.main-menu .MenuItem {
+  margin: 0.0625rem 0;
+  border-radius: 0.875rem;
+  font-weight: 600;
+
+  > .icon {
+    display: grid;
+    place-items: center;
+
+    width: 2rem;
+    height: 2rem;
+    margin-inline-end: 0.875rem;
+    border-radius: 0.625rem;
+
+    font-size: 1.125rem;
+    color: #fff !important;
+
+    background: linear-gradient(135deg, #8E8E9C, #5E5E6C);
+  }
+
+  > .icon-user { background: linear-gradient(135deg, #FF4560, #A30E21); }
+  > .icon-saved-messages { background: linear-gradient(135deg, #4C8DFF, #2B5BD7); }
+  > .icon-archive { background: linear-gradient(135deg, #8E8E9C, #5A5A68); }
+  > .icon-group { background: linear-gradient(135deg, #B14DFF, #7A2BD7); }
+  > .icon-gram-outline { background: linear-gradient(135deg, #2FB7F0, #1A7FC4); }
+  > .icon-settings { background: linear-gradient(135deg, #9A9AA8, #64646F); }
+  > .icon-more { background: linear-gradient(135deg, #FF9A3C, #E0641C); }
+  > .icon-darkmode { background: linear-gradient(135deg, #5B5BD6, #3A3AA8); }
+  > .icon-animations { background: linear-gradient(135deg, #34C778, #1E8A50); }
+  > .icon-help { background: linear-gradient(135deg, #2FB7F0, #1A7FC4); }
+  > .icon-bug { background: linear-gradient(135deg, #FF9A3C, #E0641C); }
+  > .icon-install { background: linear-gradient(135deg, #34C778, #1E8A50); }
+}

@@ -37,6 +37,7 @@ import { useFolderManagerForUnreadCounters } from '../../../hooks/useFolderManag
 import useLang from '../../../hooks/useLang';
 import useLastCallback from '../../../hooks/useLastCallback';
 
+import DigNetsMenuHero from '../../dignets/DigNetsMenuHero';
 import AttachBotItem from '../../middle/composer/AttachBotItem';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MenuItem from '../../ui/MenuItem';
@@ -177,6 +178,7 @@ const LeftSideMenuItems = ({
 
   return (
     <>
+      {currentUser && <DigNetsMenuHero user={currentUser} onClick={handleSelectMyProfile} />}
       {IS_MULTIACCOUNT_SUPPORTED && currentUser && (
         <>
           <AccountMenuItems

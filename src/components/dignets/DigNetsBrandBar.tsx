@@ -1,4 +1,4 @@
-import { memo, useState } from '../../lib/teact/teact';
+import { memo, useEffect, useState } from '../../lib/teact/teact';
 import { getActions, getGlobal } from '../../global';
 
 import { MAIN_THREAD_ID } from '../../api/types';
@@ -6,6 +6,7 @@ import { MAIN_THREAD_ID } from '../../api/types';
 import useLastCallback from '../../hooks/useLastCallback';
 
 import DigNetsAiModal from './DigNetsAiModal';
+import { DIGNETS_OPEN_AI_EVENT } from './DigNetsMenuHero';
 
 import styles from './DigNetsBrandBar.module.scss';
 
@@ -18,6 +19,12 @@ type OwnProps = {
 const DigNetsBrandBar = ({ isHidden }: OwnProps) => {
   const { openChat } = getActions();
   const [isAiOpen, setIsAiOpen] = useState(false);
+
+  useEffect(() => {
+    const open = () => setIsAiOpen(true);
+    window.addEventListener(DIGNETS_OPEN_AI_EVENT, open);
+    return () => window.removeEventListener(DIGNETS_OPEN_AI_EVENT, open);
+  }, []);
 
   const handleSavedClick = useLastCallback(() => {
     const { currentUserId } = getGlobal();
