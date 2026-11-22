@@ -1,4 +1,4 @@
-import { memo, useRef, useState } from '../../lib/teact/teact';
+import { memo, useEffect, useRef, useState } from '../../lib/teact/teact';
 import { getActions, getGlobal } from '../../global';
 
 import type { ThreadId } from '../../types';
@@ -21,43 +21,87 @@ type OwnProps = {
   onClose: NoneToVoidFunction;
 };
 
-type Tab = AiTask | 'settings';
-
-const TASKS: { id: Tab; emoji: string; title: string; hint: string }[] = [
-  { id: 'summary', emoji: '📝', title: 'Xulosa', hint: 'Chatni qisqacha tushuntirib beradi' },
-  { id: 'reply', emoji: '💬', title: 'Javob', hint: 'Oxirgi xabarlarga javob taklif qiladi' },
-  { id: 'improve', emoji: '✨', title: 'Yaxshilash', hint: 'Matningizni ravon va xatosiz qiladi' },
-  { id: 'translate', emoji: '🌐', title: 'Tarjima', hint: 'Matnni tanlangan tilga o\'giradi' },
-  { id: 'tasks', emoji: '✅', title: 'Vazifalar', hint: 'Chatdan vazifa va muddatlarni topadi' },
-  { id: 'ask', emoji: '🤖', title: 'Savol', hint: 'Chat bo\'yicha istalgan savolni bering' },
-  { id: 'settings', emoji: '⚙️', title: 'Sozlash', hint: 'AI xizmati va kalitni sozlash' },
-];
-
-const INPUT_PLACEHOLDERS: Partial<Record<AiTask, string>> = {
-  reply: 'Ixtiyoriy: qanday ohangda javob kerak? (masalan: rasmiy, qisqa, rad etish)',
-  improve: 'Yaxshilanadigan matnni shu yerga yozing…',
-  translate: 'Tarjima qilinadigan matn…',
-  ask: 'Masalan: kim yetkazib berish sanasini so\'radi?',
+type Entry = {
+  id: number;
+  role: 'user' | 'ai' | 'error';
+  text: string;
+  task: AiTask;
 };
 
+type Card = {
+  task: AiTask;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  tint: string;
+};
+
+const CARDS: Card[] = [
+  {
+    task: 'summary', emoji: '📝', title: 'Xulosa', subtitle: 'Chat qisqacha', tint: 'red',
+  },
+  {
+    task: 'reply', emoji: '💬', title: 'Javob yoz', subtitle: 'Tayyor javob', tint: 'violet',
+  },
+  {
+    task: 'tasks', emoji: '✅', title: 'Vazifalar', subtitle: 'Kim, nima, qachon', tint: 'green',
+  },
+  {
+    task: 'improve', emoji: '✨', title: 'Yaxshilash', subtitle: 'Matnni silliqlash', tint: 'orange',
+  },
+  {
+    task: 'translate', emoji: '🌐', title: 'Tarjima', subtitle: 'Istalgan tilga', tint: 'blue',
+  },
+];
+
+const TASK_LABELS: Record<AiTask, string> = {
+  summary: '📝 Chatni xulosa qil',
+  reply: '💬 Javob yozib ber',
+  tasks: '✅ Vazifalarni top',
+  improve: '✨ Yaxshilash',
+  translate: '🌐 Tarjima',
+  ask: '',
+};
+
+const INSTANT_TASKS: AiTask[] = ['summary', 'reply', 'tasks'];
+const INSERTABLE_TASKS: AiTask[] = ['reply', 'improve', 'translate'];
 const LANGUAGES = ['o\'zbek', 'rus', 'ingliz', 'turk', 'qozoq', 'tojik'];
+
+function getPlaceholder(mode: AiTask, language: string) {
+  if (mode === 'improve') return 'Yaxshilanadigan matnni yozing…';
+  if (mode === 'translate') return `${language} tiliga tarjima uchun matn…`;
+  return 'DigNets AI\'dan so\'rang…';
+}
 
 const DigNetsAiModal = ({
   isOpen, chatId, threadId, onClose,
 }: OwnProps) => {
   const { openChatWithDraft, showNotification } = getActions();
 
-  const [tab, setTab] = useState<Tab>(() => (loadAiSettings().apiKey ? 'summary' : 'settings'));
   const [settings, setSettings] = useState<AiSettings>(loadAiSettings);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
+    const initial = loadAiSettings();
+    return initial.provider !== 'free' && !initial.apiKey;
+  });
+  const [mode, setMode] = useState<AiTask>('ask');
   const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [error, setError] = useState('');
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController>();
+  const listRef = useRef<HTMLDivElement>();
+  const inputRef = useRef<HTMLTextAreaElement>();
+  const idRef = useRef(0);
 
-  const isTaskTab = tab !== 'settings';
-  const needsInput = tab === 'improve' || tab === 'translate' || tab === 'ask';
-  const placeholder = isTaskTab ? INPUT_PLACEHOLDERS[tab] : undefined;
+  const global = getGlobal();
+  const chatUser = global.users.byId[chatId];
+  const chatTitle = chatUser
+    ? [chatUser.firstName, chatUser.lastName].filter(Boolean).join(' ')
+    : global.chats.byId[chatId]?.title || '';
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [entries, isLoading]);
 
   const updateSettings = useLastCallback((patch: Partial<AiSettings>) => {
     const next = { ...settings, ...patch };
@@ -69,16 +113,15 @@ const DigNetsAiModal = ({
     updateSettings({ provider, model: DEFAULT_MODELS[provider] });
   });
 
-  const handleTabClick = useLastCallback((nextTab: Tab) => {
-    setTab(nextTab);
-    setResult('');
-    setError('');
+  const pushEntry = useLastCallback((entry: Omit<Entry, 'id'>) => {
+    idRef.current += 1;
+    const id = idRef.current;
+    setEntries((current) => [...current, { ...entry, id }]);
   });
 
-  const handleRun = useLastCallback(async () => {
-    if (tab === 'settings') return;
-    if (needsInput && !input.trim()) {
-      setError('Avval matn yozing.');
+  const run = useLastCallback(async (task: AiTask, text: string) => {
+    if (settings.provider !== 'free' && !settings.apiKey.trim()) {
+      setIsSettingsOpen(true);
       return;
     }
 
@@ -86,35 +129,58 @@ const DigNetsAiModal = ({
     const controller = new AbortController();
     abortRef.current = controller;
 
+    const label = TASK_LABELS[task];
+    const shown = task === 'ask' ? text : [label, text].filter(Boolean).join('\n');
+    pushEntry({ role: 'user', text: shown, task });
     setIsLoading(true);
-    setError('');
-    setResult('');
 
     try {
-      const transcript = (tab === 'improve' || tab === 'translate')
+      const transcript = (task === 'improve' || task === 'translate')
         ? ''
         : collectChatTranscript(getGlobal(), chatId, threadId);
-      const prompt = buildPrompt(tab, transcript, input.trim(), settings.language);
+      const prompt = buildPrompt(task, transcript, text, settings.language);
       const answer = await askAi(settings, prompt, controller.signal);
-      setResult(answer || 'Javob bo\'sh qaytdi.');
+      pushEntry({ role: 'ai', text: answer || 'Javob bo\'sh qaytdi.', task });
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError((err as Error).message || 'Noma\'lum xato');
+        pushEntry({ role: 'error', text: (err as Error).message || 'Noma\'lum xato', task });
       }
     } finally {
       setIsLoading(false);
     }
   });
 
-  const handleInsert = useLastCallback(() => {
-    if (!result) return;
-    openChatWithDraft({ chatId, threadId, text: { text: result } });
+  const handleCardClick = useLastCallback((task: AiTask) => {
+    if (INSTANT_TASKS.includes(task)) {
+      void run(task, '');
+      return;
+    }
+    setMode(task);
+    inputRef.current?.focus();
+  });
+
+  const handleSend = useLastCallback(() => {
+    const text = input.trim();
+    if (!text || isLoading) return;
+    setInput('');
+    void run(mode, text);
+    setMode('ask');
+  });
+
+  const handleKeyDown = useLastCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  const handleInsert = useLastCallback((text: string) => {
+    openChatWithDraft({ chatId, threadId, text: { text } });
     onClose();
   });
 
-  const handleCopy = useLastCallback(() => {
-    if (!result) return;
-    navigator.clipboard?.writeText(result).then(() => {
+  const handleCopy = useLastCallback((text: string) => {
+    navigator.clipboard?.writeText(text).then(() => {
       showNotification({ message: 'Nusxa olindi' });
     }).catch(() => undefined);
   });
@@ -124,129 +190,243 @@ const DigNetsAiModal = ({
     onClose();
   });
 
-  const canInsert = tab === 'reply' || tab === 'improve' || tab === 'translate';
+  const isEmpty = !entries.length && !isLoading;
+  const needsKey = settings.provider !== 'free';
+  const canStart = !needsKey || Boolean(settings.apiKey.trim());
+  let subtitle = 'Shaxsiy yordamchi';
+  if (isSettingsOpen) subtitle = 'Sozlamalar';
+  else if (chatTitle) subtitle = `${chatTitle} bilan chat`;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
       className={styles.modal}
-      title="DigNets AI"
-      hasCloseButton
+      contentClassName={styles.content}
     >
       <div className={styles.root}>
-        <div className={styles.tabs}>
-          {TASKS.map((task) => (
-            <button
-              key={task.id}
-              type="button"
-              className={`${styles.tab} ${tab === task.id ? styles.tabActive : ''}`}
-              onClick={() => handleTabClick(task.id)}
-            >
-              <span className={styles.tabEmoji}>{task.emoji}</span>
-              <span>{task.title}</span>
-            </button>
-          ))}
+        <div className={styles.header}>
+          <div className={styles.orbSmall} />
+          <div className={styles.headerText}>
+            <div className={styles.headerTitle}>DigNets AI</div>
+            <div className={styles.headerSubtitle}>{subtitle}</div>
+          </div>
+          <button
+            type="button"
+            className={`${styles.iconButton} ${isSettingsOpen ? styles.iconButtonActive : ''}`}
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            aria-label="Sozlash"
+          >
+            ⚙️
+          </button>
+          <button type="button" className={styles.iconButton} onClick={handleClose} aria-label="Yopish">
+            ✕
+          </button>
         </div>
 
-        <p className={styles.hint}>{TASKS.find((task) => task.id === tab)?.hint}</p>
-
-        {tab === 'settings' ? (
+        {isSettingsOpen ? (
           <div className={styles.settings}>
-            <label className={styles.label}>AI xizmati</label>
-            <div className={styles.segment}>
-              <button
-                type="button"
-                className={`${styles.segmentItem} ${settings.provider === 'gemini' ? styles.segmentActive : ''}`}
-                onClick={() => handleProviderChange('gemini')}
-              >
-                Google Gemini (bepul kalit)
-              </button>
-              <button
-                type="button"
-                className={`${styles.segmentItem} ${settings.provider === 'claude' ? styles.segmentActive : ''}`}
-                onClick={() => handleProviderChange('claude')}
-              >
-                Anthropic Claude
-              </button>
-            </div>
-
-            <label className={styles.label} htmlFor="dn-ai-key">API kalit</label>
-            <input
-              id="dn-ai-key"
-              className={styles.input}
-              type="password"
-              autoComplete="off"
-              value={settings.apiKey}
-              placeholder="Kalitni shu yerga qo'ying"
-              onInput={(e) => updateSettings({ apiKey: (e.currentTarget).value })}
-            />
-            <a className={styles.link} href={KEY_LINKS[settings.provider]} target="_blank" rel="noopener noreferrer">
-              🔑 Kalitni qayerdan olish mumkin →
-            </a>
-
-            <label className={styles.label} htmlFor="dn-ai-model">Model</label>
-            <input
-              id="dn-ai-model"
-              className={styles.input}
-              value={settings.model}
-              onInput={(e) => updateSettings({ model: (e.currentTarget).value })}
-            />
-
-            <label className={styles.label}>Javob tili</label>
-            <div className={styles.chips}>
-              {LANGUAGES.map((language) => (
+            <div className={styles.settingsCard}>
+              <div className={styles.settingsTitle}>AI xizmati</div>
+              <div className={styles.providers}>
                 <button
-                  key={language}
                   type="button"
-                  className={`${styles.chip} ${settings.language === language ? styles.chipActive : ''}`}
-                  onClick={() => updateSettings({ language })}
+                  className={`${styles.provider} ${settings.provider === 'free' ? styles.providerActive : ''}`}
+                  onClick={() => handleProviderChange('free')}
                 >
-                  {language}
+                  <span className={styles.providerEmoji}>🎁</span>
+                  <span className={styles.providerName}>Bepul</span>
+                  <span className={styles.providerNote}>Kalitsiz</span>
                 </button>
-              ))}
+                <button
+                  type="button"
+                  className={`${styles.provider} ${settings.provider === 'gemini' ? styles.providerActive : ''}`}
+                  onClick={() => handleProviderChange('gemini')}
+                >
+                  <span className={styles.providerEmoji}>💎</span>
+                  <span className={styles.providerName}>Gemini</span>
+                  <span className={styles.providerNote}>Bepul kalit</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.provider} ${settings.provider === 'claude' ? styles.providerActive : ''}`}
+                  onClick={() => handleProviderChange('claude')}
+                >
+                  <span className={styles.providerEmoji}>🧠</span>
+                  <span className={styles.providerName}>Claude</span>
+                  <span className={styles.providerNote}>Eng aqlli</span>
+                </button>
+              </div>
             </div>
 
-            <p className={styles.note}>
-              🔒 Kalit faqat shu brauzerda saqlanadi. So&apos;rov bosilganda chatning oxirgi xabarlari
-              tanlangan AI xizmatiga yuboriladi.
-            </p>
-            <button type="button" className={styles.primary} onClick={() => setTab('summary')}>
-              Tayyor
+            {needsKey && (
+              <div className={styles.settingsCard}>
+                <div className={styles.settingsTitle}>
+                  API kalit
+                  <a href={KEY_LINKS[settings.provider]} target="_blank" rel="noopener noreferrer">Olish →</a>
+                </div>
+                <input
+                  className={styles.field}
+                  type="password"
+                  autoComplete="off"
+                  value={settings.apiKey}
+                  placeholder="Kalitni shu yerga qo'ying"
+                  onInput={(e) => updateSettings({ apiKey: e.currentTarget.value })}
+                />
+                <details className={styles.advanced}>
+                  <summary>Model</summary>
+                  <input
+                    className={styles.field}
+                    value={settings.model}
+                    onInput={(e) => updateSettings({ model: e.currentTarget.value })}
+                  />
+                </details>
+              </div>
+            )}
+
+            <div className={styles.settingsCard}>
+              <div className={styles.settingsTitle}>Javob tili</div>
+              <div className={styles.langs}>
+                {LANGUAGES.map((language) => (
+                  <button
+                    key={language}
+                    type="button"
+                    className={`${styles.lang} ${settings.language === language ? styles.langActive : ''}`}
+                    onClick={() => updateSettings({ language })}
+                  >
+                    {language}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.privacy}>
+              {needsKey
+                ? '🔒 Kalit faqat shu brauzerda saqlanadi'
+                : '🎁 Bepul rejim — kalit kerak emas, javoblar biroz sekinroq bo\'lishi mumkin'}
+            </div>
+
+            <button
+              type="button"
+              className={styles.doneButton}
+              disabled={!canStart}
+              onClick={() => setIsSettingsOpen(false)}
+            >
+              Boshlash
             </button>
           </div>
         ) : (
           <>
-            {placeholder && (
-              <textarea
-                className={styles.textarea}
-                rows={needsInput ? 4 : 2}
-                value={input}
-                placeholder={placeholder}
-                onInput={(e) => setInput((e.currentTarget).value)}
-              />
-            )}
-
-            <button type="button" className={styles.primary} disabled={isLoading} onClick={handleRun}>
-              {isLoading ? 'O\'ylayapman…' : `${TASKS.find((task) => task.id === tab)?.emoji} Boshlash`}
-            </button>
-
-            {error && <div className={styles.error}>{error}</div>}
-
-            {result && (
-              <div className={styles.result}>
-                <div className={styles.resultText}>{result}</div>
-                <div className={styles.resultActions}>
-                  {canInsert && (
-                    <button type="button" className={styles.secondary} onClick={handleInsert}>
-                      ↩️ Xabarga qo&apos;yish
-                    </button>
-                  )}
-                  <button type="button" className={styles.secondary} onClick={handleCopy}>📋 Nusxa</button>
-                  <button type="button" className={styles.secondary} onClick={handleRun}>🔄 Qayta</button>
+            <div className={styles.list} ref={listRef}>
+              {isEmpty && (
+                <div className={styles.hero}>
+                  <div className={styles.orb} />
+                  <div className={styles.heroTitle}>Salom! 👋</div>
+                  <div className={styles.heroText}>Bu chatda nima yordam beray?</div>
+                  <div className={styles.cards}>
+                    {CARDS.map((card) => (
+                      <button
+                        key={card.task}
+                        type="button"
+                        className={`${styles.card} ${styles[`tint-${card.tint}`]}`}
+                        onClick={() => handleCardClick(card.task)}
+                      >
+                        <span className={styles.cardEmoji}>{card.emoji}</span>
+                        <span className={styles.cardTitle}>{card.title}</span>
+                        <span className={styles.cardSubtitle}>{card.subtitle}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {entries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className={`${styles.row} ${entry.role === 'user' ? styles.rowUser : ''}`}
+                >
+                  {entry.role !== 'user' && <div className={styles.avatar} />}
+                  <div className={styles.bubbleWrap}>
+                    <div
+                      className={`${styles.bubble} ${entry.role === 'user' ? styles.bubbleUser : ''} ${
+                        entry.role === 'error' ? styles.bubbleError : ''}`}
+                    >
+                      {entry.text}
+                    </div>
+                    {entry.role === 'ai' && (
+                      <div className={styles.actions}>
+                        {INSERTABLE_TASKS.includes(entry.task) && (
+                          <button type="button" className={styles.action} onClick={() => handleInsert(entry.text)}>
+                            ↩️ Xabarga qo&apos;yish
+                          </button>
+                        )}
+                        <button type="button" className={styles.action} onClick={() => handleCopy(entry.text)}>
+                          📋 Nusxa
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className={styles.row}>
+                  <div className={styles.avatar} />
+                  <div className={`${styles.bubble} ${styles.typing}`}>
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {!isEmpty && (
+              <div className={styles.quick}>
+                {CARDS.map((card) => (
+                  <button
+                    key={card.task}
+                    type="button"
+                    className={`${styles.quickChip} ${mode === card.task ? styles.quickChipActive : ''}`}
+                    onClick={() => handleCardClick(card.task)}
+                  >
+                    {card.emoji}
+                    {' '}
+                    {card.title}
+                  </button>
+                ))}
               </div>
             )}
+
+            <div className={styles.composer}>
+              {mode !== 'ask' && (
+                <button type="button" className={styles.modeChip} onClick={() => setMode('ask')}>
+                  {TASK_LABELS[mode]}
+                  {' '}
+                  ✕
+                </button>
+              )}
+              <div className={styles.composerRow}>
+                <textarea
+                  ref={inputRef}
+                  className={styles.composerInput}
+                  rows={1}
+                  value={input}
+                  placeholder={getPlaceholder(mode, settings.language)}
+                  onInput={(e) => setInput(e.currentTarget.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button
+                  type="button"
+                  className={styles.send}
+                  disabled={!input.trim() || isLoading}
+                  onClick={handleSend}
+                  aria-label="Yuborish"
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>
