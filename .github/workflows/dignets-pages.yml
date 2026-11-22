@@ -1,0 +1,50 @@
+name: DigNets Web — GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Kalitlarni tekshirish
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TG_API_ID }}
+        run: |
+          if [ -z "$TELEGRAM_API_ID" ]; then echo "::error::TG_API_ID va TG_API_HASH secrets qo'shilmagan"; exit 1; fi
+      - run: npx -y npm@11 ci --no-audit --no-fund
+      - name: Yig'ish
+        env:
+          TELEGRAM_API_ID: ${{ secrets.TG_API_ID }}
+          TELEGRAM_API_HASH: ${{ secrets.TG_API_HASH }}
+          APP_ENV: production
+          BASE_URL: https://abduhalilovamadina94-bot.github.io/DigNets-Web/
+        run: npx vite build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
