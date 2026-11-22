@@ -79,7 +79,7 @@ export default defineConfig(async ({ mode }): Promise<UserConfig> => {
     HTTPS_KEY_PATH: httpsKeyPath = '',
   } = env;
   const appEnv = env.APP_ENV || (mode === 'development' ? 'development' : 'production');
-  const defaultAppTitle = `Telegram${appEnv !== 'production' ? ' Beta' : ''}`;
+  const defaultAppTitle = `DigNets${appEnv !== 'production' ? ' Beta' : ''}`;
   const baseUrl = env.BASE_URL || PRODUCTION_URL;
   const appTitle = env.APP_TITLE || defaultAppTitle;
   const isProductionApp = appEnv === 'production';

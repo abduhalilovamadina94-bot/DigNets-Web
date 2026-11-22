@@ -46,13 +46,13 @@ export default function buildWebManifestPlugin({ id, isProductionApp }: Options)
 }
 
 function buildManifest(id: string | undefined, isProductionApp: boolean, icons: object[]) {
-  const name = isProductionApp ? 'Telegram Web' : 'Telegram Web Beta';
+  const name = isProductionApp ? 'DigNets' : 'DigNets Beta';
 
   return JSON.stringify({
     id,
     name,
     short_name: name,
-    description: 'Telegram is a cloud-based mobile and desktop messaging app with a focus on security and speed.',
+    description: 'DigNets — tez, xavfsiz va o\'z uslubingizdagi messenjer.',
     start_url: './',
     icons,
     share_target: {
