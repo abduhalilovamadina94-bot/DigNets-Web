@@ -41,7 +41,7 @@
   "--color-green": ["#00C73E", "#00C73E"],
   "--color-green-darker": ["#00A734", "#00A734"],
   "--color-success": ["#00C73E", "#00C73E"],
-  "--color-text-meta-colored": ["#4DCD5E", "#8378DB"],
+  "--color-text-meta-colored": ["#E0192C", "#FF4560"],
   "--color-reply-hover": ["#F4F4F4", "#272727"],
   "--color-reply-active": ["#E8E9E9", "#2E2F2F"],
   "--color-reply-own-hover": ["#FFD3D8", "#C42030"],
