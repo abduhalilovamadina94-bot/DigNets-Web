@@ -6,7 +6,7 @@ on:
     branches: [ master ]
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -35,9 +35,29 @@ jobs:
           APP_ENV: production
           BASE_URL: https://abduhalilovamadina94-bot.github.io/DigNets-Web/
         run: npx vite build
+      # Keep files from earlier versions online, so browsers that still run an older
+      # cached version can load their chunks instead of hanging on the spinner.
+      - name: Eski versiya fayllarini saqlab qolish
+        run: |
+          find dist -name '*.map' -delete
+          git fetch origin pages-history --depth=1 || true
+          mkdir -p site
+          if git rev-parse --verify -q origin/pages-history >/dev/null; then
+            git --work-tree=site checkout origin/pages-history -- .
+            git reset -q
+          fi
+          cp -a dist/. site/
+          cd site
+          git init -q
+          git config user.name "dignets-bot"
+          git config user.email "dignets-bot@users.noreply.github.com"
+          git checkout -q -b pages-history
+          git add -A
+          git commit -q -m "Sayt: ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" pages-history
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     needs: build
