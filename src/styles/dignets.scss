@@ -284,11 +284,6 @@ html.theme-dark .settings-main-scroll {
   background-color: #0F0F15;
 }
 
-html.theme-dark .settings-main-scroll [class*="island"] {
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(255, 255, 255, 0.035);
-  box-shadow: none;
-}
 
 // Glossy icon tiles everywhere icons sit on a coloured backdrop
 .ListItem-main-icon-slot > :not(i).ListItem-main-icon {

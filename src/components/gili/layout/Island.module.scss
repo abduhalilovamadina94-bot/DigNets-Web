@@ -9,6 +9,13 @@
     corner-shape: squircle;
   }
 
+  // DigNets: glass cards in the dark theme
+  :global(html.theme-dark) .island {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background-color: #17171F;
+    box-shadow: none;
+  }
+
   .description {
     display: block;
 
