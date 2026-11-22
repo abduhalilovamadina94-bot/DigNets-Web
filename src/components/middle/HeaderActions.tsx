@@ -43,6 +43,7 @@ import useLastCallback from '../../hooks/useLastCallback';
 
 import CustomEmoji from '../common/CustomEmoji';
 import Icon from '../common/icons/Icon';
+import DigNetsAiModal from '../dignets/DigNetsAiModal';
 import Button from '../ui/Button';
 import DropdownMenu from '../ui/DropdownMenu';
 import Link from '../ui/Link';
@@ -141,6 +142,7 @@ const HeaderActions = ({
   const searchLabel = useKeyboardShortcutHint(lang('ConversationSearchPlaceholder'), 'searchInChat');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<IAnchorPosition | undefined>(undefined);
 
   const handleHeaderMenuOpen = useLastCallback(() => {
@@ -376,6 +378,21 @@ const HeaderActions = ({
           <div className="badge">{pendingJoinRequests}</div>
         </Button>
       )}
+      <Button
+        round
+        className="dn-ai-button"
+        size="smaller"
+        color="translucent"
+        onClick={() => setIsAiOpen(true)}
+        ariaLabel="DigNets AI"
+        iconName="ai"
+      />
+      <DigNetsAiModal
+        isOpen={isAiOpen}
+        chatId={chatId}
+        threadId={threadId}
+        onClose={() => setIsAiOpen(false)}
+      />
       <Button
         ref={menuButtonRef}
         className={isMenuOpen ? 'active' : ''}

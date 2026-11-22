@@ -139,3 +139,13 @@ html.theme-dark {
     radial-gradient(60% 50% at 80% 0%, rgba(224, 25, 44, 0.22) 0%, rgba(224, 25, 44, 0) 70%),
     radial-gradient(50% 45% at 10% 100%, rgba(177, 77, 255, 0.16) 0%, rgba(177, 77, 255, 0) 70%);
 }
+
+// DigNets AI header button
+.dn-ai-button.Button.translucent {
+  color: #FF4560;
+
+  &:hover {
+    color: #fff;
+    background-image: $dn-gradient;
+  }
+}
