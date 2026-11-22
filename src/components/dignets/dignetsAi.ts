@@ -258,3 +258,18 @@ export function buildPrompt(task: AiTask, transcript: string, input: string, lan
       return `${chatBlock}\n\nSavol: ${input}`;
   }
 }
+
+export function buildSmartRepliesPrompt(transcript: string, language: string) {
+  return `Chat yozishmasi (eng oxirgi xabarlar):\n<chat>\n${transcript}\n</chat>\n\n`
+    + `Oxirgi xabarga "Men" nomidan ${language} tilida 3 xil qisqa javob varianti yoz `
+    + '(biri iliq, biri qisqa va aniq, biri savol bilan). Har bir variant 12 so\'zdan oshmasin. '
+    + 'Faqat 3 qator qaytar, har qatorda bitta variant, raqam va qo\'shtirnoqsiz.';
+}
+
+export function parseSmartReplies(answer: string) {
+  return answer
+    .split('\n')
+    .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').replace(/^["«„“]|["»”]$/g, '').trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}

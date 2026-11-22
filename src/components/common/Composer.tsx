@@ -206,6 +206,7 @@ import useRichMedia from '../middle/composer/hooks/useRichMedia';
 import useVideoRecording from '../middle/composer/hooks/useVideoRecording';
 import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
 
+import DigNetsSmartReplies from '../dignets/DigNetsSmartReplies';
 import AttachmentModal from '../middle/composer/AttachmentModal.async';
 import AttachMenu from '../middle/composer/AttachMenu';
 import BotCommandMenu from '../middle/composer/BotCommandMenu.async';
@@ -3025,6 +3026,9 @@ const Composer = ({
                 </Button>
               )}
             </>
+          )}
+          {isInMessageList && !isRichInputExpansionActive && !activeRecording && (
+            <DigNetsSmartReplies chatId={chatId} threadId={threadId} />
           )}
           {!isNeedPremium && (
             <AttachMenu
