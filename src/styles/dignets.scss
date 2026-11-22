@@ -262,3 +262,96 @@ html.theme-dark .main-menu .bubble {
   > .icon-bug { background: linear-gradient(135deg, #FF9A3C, #E0641C); }
   > .icon-install { background: linear-gradient(135deg, #34C778, #1E8A50); }
 }
+
+// ---------- Settings & profile ----------
+.settings-main-scroll .ProfileInfo {
+  overflow: hidden;
+  margin-inline-end: 0 !important;
+  border: 1px solid rgba(255, 69, 96, 0.22);
+  border-radius: 1.5rem;
+}
+
+html.theme-dark .settings-main-scroll .ProfileInfo {
+  --profile-info-bg: #16161E;
+
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgba(224, 25, 44, 0.42) 0%, rgba(224, 25, 44, 0) 70%),
+    radial-gradient(80% 60% at 0% 100%, rgba(177, 77, 255, 0.26) 0%, rgba(177, 77, 255, 0) 70%),
+    #16161E;
+}
+
+html.theme-dark .settings-main-scroll {
+  background-color: #0F0F15;
+}
+
+html.theme-dark .settings-main-scroll [class*="island"] {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+// Glossy icon tiles everywhere icons sit on a coloured backdrop
+.ListItem-main-icon-slot > :not(i).ListItem-main-icon {
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 55%, rgba(0, 0, 0, 0.14) 100%);
+  box-shadow: 0 0.25rem 0.625rem -0.25rem rgba(0, 0, 0, 0.5);
+}
+
+.dn-settings-ai {
+  display: flex;
+  gap: 0.875rem;
+  align-items: center;
+
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(255, 69, 96, 0.3);
+  border-radius: 1.25rem;
+
+  font: inherit;
+  text-align: left;
+
+  background: linear-gradient(135deg, rgba(224, 25, 44, 0.2), rgba(177, 77, 255, 0.16));
+
+  cursor: pointer;
+  transition: transform 0.15s;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &__icon {
+    display: grid;
+    place-items: center;
+
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.875rem;
+
+    color: #fff;
+
+    background: $dn-gradient;
+    box-shadow: 0 0.375rem 1rem -0.375rem rgba(224, 25, 44, 0.8);
+  }
+
+  &__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-family: var(--dn-font-display, inherit);
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  &__subtitle {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+  }
+
+  &__arrow {
+    font-size: 1.375rem;
+    color: var(--color-text-secondary);
+  }
+}

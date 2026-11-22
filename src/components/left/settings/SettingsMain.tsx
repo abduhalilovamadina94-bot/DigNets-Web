@@ -24,6 +24,7 @@ import useLang from '../../../hooks/useLang';
 
 import ChatExtra from '../../common/profile/ChatExtra';
 import ProfileInfo from '../../common/profile/ProfileInfo';
+import { requestOpenDigNetsAi } from '../../dignets/DigNetsMenuHero';
 import Island from '../../gili/layout/Island';
 import ListItem from '../../ui/ListItem';
 
@@ -50,7 +51,6 @@ const SettingsMain = ({
   isActive,
   currentUserId,
   sessionCount,
-  canBuyPremium,
   isGiveawayAvailable,
   isWalletAvailable,
   isCurrentUserFrozen,
@@ -62,7 +62,6 @@ const SettingsMain = ({
   const {
     loadMoreProfilePhotos,
     loadWalletState,
-    openPremiumModal,
     openUrl,
     openGiftRecipientPicker,
     openStarsBalanceModal,
@@ -112,6 +111,14 @@ const SettingsMain = ({
         )}
       </div>
       <div className={styles.menuSection}>
+        <button type="button" className="dn-settings-ai" onClick={requestOpenDigNetsAi}>
+          <span className="dn-settings-ai__icon">✦</span>
+          <span className="dn-settings-ai__text">
+            <span className="dn-settings-ai__title">DigNets AI</span>
+            <span className="dn-settings-ai__subtitle">Xulosa, javob, tarjima va matnni yaxshilash — bepul</span>
+          </span>
+          <span className="dn-settings-ai__arrow">›</span>
+        </button>
         {isWalletAvailable && (
           <Island>
             <ListItem
@@ -264,16 +271,6 @@ const SettingsMain = ({
         </Island>
 
         <Island>
-          {canBuyPremium && (
-            <ListItem
-              icon="star"
-              iconBg="premium"
-              narrow
-              onClick={() => openPremiumModal()}
-            >
-              {lang('TelegramPremium')}
-            </ListItem>
-          )}
 
           <ListItem
             icon="stars-filled"
