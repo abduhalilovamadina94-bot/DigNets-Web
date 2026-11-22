@@ -305,7 +305,9 @@ $wallpaper-transition: 0.3s cubic-bezier(0.37, 0, 0.63, 1);
 
   &::before,
   .patternLayer,
-  .gradientCanvas {
+  .gradientCanvas,
+  .snapshot,
+  :global(.wallpaper-snapshot) {
     display: none !important;
   }
 }
